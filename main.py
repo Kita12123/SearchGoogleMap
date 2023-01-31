@@ -3,6 +3,7 @@
     2022/09/08  m6QErb DxyBCb kA9KIf dS8AEf ecceSd
 """
 import csv
+import logging
 import os
 import sys
 import time
@@ -14,12 +15,13 @@ from selenium.webdriver.chrome import service as fs
 from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
 
+LOGGER = logging.getLogger(__name__)
 # Google Chromeのドライバを用意
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 chrome_service = fs.Service(executable_path=ChromeDriverManager().install())
 DRIVER = webdriver.Chrome(service=chrome_service, options=options)
-SEARCH_PLACES = [
+PLACES = [
     "北海道",
     "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
     "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
@@ -31,6 +33,38 @@ SEARCH_PLACES = [
 ]
 
 
+class InvalidURLError(Exception):
+    """無効なURL"""
+    pass
+
+
+def create_place_generator():
+    """順番に場所を返すジェレネータ作成
+
+    Yields:
+        tuple[int, str]: 回数, 場所名
+    """
+    for i, place in enumerate(PLACES):
+        yield i, place
+
+
+PLACE_GENERATOR = create_place_generator()
+
+
+def _create_url(place, /) -> str:
+    """検索URL作成
+
+    Args:
+        place (str): 場所
+
+    Returns:
+        str: URL
+    """
+    SEARCH_WORD = os.environ["SEARCH_WORD"]
+    sw = SEARCH_WORD.replace(" ", "+").replace(",", "+").replace("++", "+")
+    return f"https://www.google.co.jp/maps/search/{sw}+{place}"
+
+
 def _can_scroll() -> bool:
     """GoogleMapページの店一覧がスクロール可能か
 
@@ -38,38 +72,37 @@ def _can_scroll() -> bool:
         bool: 可能 - true, 不可能 - flase
     """
     SCROLL_CLASS = os.environ["SCROLL_CLASS"]
-    try:
-        return DRIVER.execute_script(
-            # javascript
-            # scrollHeight: スクロールバー全体の高さ
-            # scrollTop: スクロールの上の位置
-            # offsetHeight: スクロールの高さ
-            f"""
-            var obj = document.getElementsByClassName(
-                '{SCROLL_CLASS}'
-            )[1];
-            return (10 < obj.scrollHeight - obj.scrollTop - obj.offsetHeight)
-            """
-        )
-    except (JavascriptException):
-        return False
+    return DRIVER.execute_script(
+        # javascript
+        # scrollHeight: スクロールバー全体の高さ
+        # scrollTop: スクロールの上の位置
+        # offsetHeight: スクロールの高さ
+        f"""
+        var obj = document.getElementsByClassName(
+            '{SCROLL_CLASS}'
+        )[1];
+        return (10 < obj.scrollHeight - obj.scrollTop - obj.offsetHeight)
+        """
+    )
 
 
-def create_search_urls(SEARCH_WORD: str, /) -> list[str]:
-    """検索用語リスト作成
-    Return ['SEARCH_WORD+場所',...]"""
-    if SEARCH_WORD == "test":
-        return ["https://www.google.com/maps/search/施設園芸+岡山県"]
-    sw = SEARCH_WORD.replace(" ", "+").replace(",", "+").replace("++", "+")
-    url = f"https://www.google.co.jp/maps/search/{sw}"
-    return [url + f"+{p}" for p in SEARCH_PLACES]
-
-
-def create_shop_links(url: str, /) -> list[list[str]]:
-    """GoogleMapの検索画面から、店ごとのリンクを取得
-    Return [[店舗名, 店舗リンク],...]"""
+def create_shop_dic_list(place: str, /) -> list[dict[str, str]]:
     SCROLL_CLASS = os.environ["SCROLL_CLASS"]
-    DRIVER.get(url)
+    result = []
+    # 検索結果が店舗一覧かどうかチェック
+    while True:
+        try:
+            url = _create_url(place)
+            DRIVER.get(url)
+            time.sleep(1)
+            _can_scroll()
+            break
+        except (JavascriptException):
+            # 場所の形式を変更して再度検索
+            if place[-1] in "都道府県":
+                place = place[:-1]
+            else:
+                raise InvalidURLError()
     # 10件以上を反映させるためにスクロールして更新する
     while True:
         if _can_scroll():
@@ -78,7 +111,7 @@ def create_shop_links(url: str, /) -> list[list[str]]:
                 # javascript
                 f"""
                 var obj = document.getElementsByClassName('{SCROLL_CLASS}')[1];
-                obj.scrollTop+=2000;
+                obj.scrollTop+=10000;
                 """
             )
         else:
@@ -87,25 +120,28 @@ def create_shop_links(url: str, /) -> list[list[str]]:
             if not _can_scroll():
                 # スクロールできなかったら抜け出す
                 break
+    # 店舗名, URL取得
     soup = BeautifulSoup(DRIVER.page_source, "html.parser")
-    results = []
     for a in soup.find_all("a"):
         name = a.get("aria-label")
-        link = a.get("href")
+        url = a.get("href")
         # 不要な部分を取る
         if (
             name is None or
             name == "検索をクリア" or
             "ウェブサイトにアクセス" in name or
-            link is None or
-            link[:4] != "http"
+            url is None or
+            url[:4] != "http"
            ):
             continue
-        results.append([name, link])
-    return results
+        result.append({
+            "名前": name,
+            "GoogleMapURL": url
+        })
+    return result
 
 
-def create_shop_description(url: str):
+def create_infomation_dic(url: str) -> dict[str, str]:
     """リンク先の店情報取得
     Return [業種, 電話番号, 住所, レビュー, ホームページ]"""
     DRIVER.get(url)
@@ -144,21 +180,43 @@ def create_shop_description(url: str):
             continue
         elif name[:8] == "ウェブサイト: ":
             hp = "https://" + name[8:]
-    return [kind, tell, adress, review, hp]
+    return {
+        "業界": kind,
+        "電話番号": tell,
+        "住所": adress,
+        "レビュー": review,
+        "ホームページ": hp
+    }
 
 
 def main():
     SEARCH_WORD = os.environ["SEARCH_WORD"]
-    data_csv = [["名前", "業界", "電話番号", "住所", "レビュー", "ホームページ", "GoogleMapURL"]]
-    search_urls = create_search_urls(SEARCH_WORD)
+    csv_data = [["名前", "業界", "電話番号", "住所", "レビュー", "ホームページ", "GoogleMapURL"]]
+    max_count = len(PLACES)
     print("スクレイピング実行中...")
-    for url in tqdm(search_urls):
-        data_csv.extend(
-            [
-                [r[0]] + create_shop_description(r[1]) + [r[1]]
-                for r in create_shop_links(url)
-            ]
-        )
+    while True:
+        try:
+            i, place = next(PLACE_GENERATOR)
+            LOGGER.debug(f"{i} / {max_count}...")
+        except (StopIteration):
+            # 全ての場所が検索されたので終了
+            break
+        try:
+            shop_dic_list = create_shop_dic_list(place)
+        except (InvalidURLError):
+            # 無効なURLなので飛ばす
+            continue
+        for shop_dic in tqdm(shop_dic_list):
+            info_dic = create_infomation_dic(shop_dic["GoogleMapURL"])
+        csv_data.append([
+            shop_dic["名前"],
+            info_dic["業界"],
+            info_dic["電話番号"],
+            info_dic["住所"],
+            info_dic["レビュー"],
+            info_dic["ホームページ"],
+            shop_dic["GoogleMapURL"]
+        ])
     print("csvファイルへ出力中...")
     while True:
         try:
@@ -169,7 +227,7 @@ def main():
                 encoding="cp932",
                 errors="replace"
             ) as f:
-                csv.writer(f).writerows(data_csv)
+                csv.writer(f).writerows(csv_data)
             break
         except (PermissionError):
             input(f"ERR! ファイル:search{SEARCH_WORD}.csvを閉じてください。<Enter>")
