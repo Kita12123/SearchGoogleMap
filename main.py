@@ -9,6 +9,7 @@ import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common.exceptions import JavascriptException
 from selenium.webdriver.chrome import service as fs
 from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
@@ -37,18 +38,21 @@ def _can_scroll() -> bool:
         bool: 可能 - true, 不可能 - flase
     """
     SCROLL_CLASS = os.environ["SCROLL_CLASS"]
-    return DRIVER.execute_script(
-        # javascript
-        # scrollHeight: スクロールバー全体の高さ
-        # scrollTop: スクロールの上の位置
-        # offsetHeight: スクロールの高さ
-        f"""
-        var obj = document.getElementsByClassName(
-            '{SCROLL_CLASS}'
-        )[1];
-        return (10 < obj.scrollHeight - obj.scrollTop - obj.offsetHeight)
-        """
-    )
+    try:
+        return DRIVER.execute_script(
+            # javascript
+            # scrollHeight: スクロールバー全体の高さ
+            # scrollTop: スクロールの上の位置
+            # offsetHeight: スクロールの高さ
+            f"""
+            var obj = document.getElementsByClassName(
+                '{SCROLL_CLASS}'
+            )[1];
+            return (10 < obj.scrollHeight - obj.scrollTop - obj.offsetHeight)
+            """
+        )
+    except (JavascriptException):
+        return False
 
 
 def create_search_urls(SEARCH_WORD: str, /) -> list[str]:
@@ -66,7 +70,6 @@ def create_shop_links(url: str, /) -> list[list[str]]:
     Return [[店舗名, 店舗リンク],...]"""
     SCROLL_CLASS = os.environ["SCROLL_CLASS"]
     DRIVER.get(url)
-    time.sleep(0.5)
     # 10件以上を反映させるためにスクロールして更新する
     while True:
         if _can_scroll():
