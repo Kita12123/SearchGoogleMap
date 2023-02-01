@@ -8,8 +8,8 @@ class DB:
     data_dic: dict[str, dict[str, str]] = {}
 
     def update(self, **kwargs):
-        url = kwargs.pop("url")
         # 重要: web.py > create_shop_info_dic() と同じにする
+        url = kwargs.pop("url")
         values = {
             "name": "",
             "kind": "",

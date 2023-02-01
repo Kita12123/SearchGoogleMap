@@ -175,4 +175,5 @@ def create_shop_info_dic(url: str, /) -> dict[str, str]:
         "locatedin": locatedin,
         "review": review,
         "hp": hp,
+        "url": url,
     }
