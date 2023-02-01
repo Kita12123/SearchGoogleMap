@@ -1,4 +1,6 @@
-環境構築
+環境
+
+python - 3.11.x推奨
 
 1. pythonインストール
     https://www.python.org/downloads/
