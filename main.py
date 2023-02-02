@@ -54,6 +54,7 @@ def main():
         while True:
             try:
                 shop_url_list = create_shop_url_list(url)
+                break
             except (InvalidURLError):
                 # いきなり店舗が出たとき
                 # ミニトマト+宮城県
