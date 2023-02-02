@@ -4,7 +4,7 @@
 :INPUT_START
 ECHO;
 ECHO +-------------------------------------------------------+
-ECHO  ŒŸõ‚·‚é•¶Žš‚ð“ü—Í‚µ‚Ä‚­‚¾‚³‚¢B
+ECHO  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é•¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 ECHO +-------------------------------------------------------+
 ECHO;
 SET INPUT_STR=
@@ -15,8 +15,8 @@ IF "%INPUT_STR%"=="" GOTO :INPUT_START
 :INPUT_CONF
 ECHO;
 ECHO +-------------------------------------------------------+
-ECHO  “ü—Í‚µ‚½•¶Žš‚Í[%INPUT_STR%]‚Å‚æ‚ë‚µ‚¢‚Å‚·‚©H
-ECHO iY / Nj
+ECHO  ï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[%INPUT_STR%]ï¿½Å‚ï¿½ë‚µï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½H
+ECHO ï¿½iY / Nï¿½j
 ECHO +-------------------------------------------------------+
 ECHO;
 SET CONF_SELECT=
@@ -25,6 +25,6 @@ SET /P CONF_SELECT=
 IF "%CONF_SELECT%"== SET CONF_SELECT=Y
 IF /I NOT "%CONF_SELECT%"=="Y"  GOTO :INPUT_START
 
-python main.py "%INPUT_STR%" "m6QErb DxyBCb kA9KIf dS8AEf ecceSd"
+python main.py "%INPUT_STR%" "m6QErb DxyBCb kA9KIf dS8AEf ecceSd" "hfpxzc"
 ECHO;
 pause

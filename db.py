@@ -36,7 +36,7 @@ class DB:
             "URL",
         ]]
         values = [
-            list(*values, url)
+            [*values.values(), url]
             for url, values in self.data_dic.items()
         ]
         data_csv = columns + values

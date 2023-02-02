@@ -1,11 +1,14 @@
 import os
 import time
 
+import main
 import web
-from db import DB
 
 os.environ["SCROLL_CLASS"] = "m6QErb DxyBCb kA9KIf dS8AEf ecceSd"
 os.environ["SHOP_LINK_CLASS"] = "hfpxzc"
+
+main.PLACES.clear()
+main.PLACES.append("宮城県")
 
 shop_list_url = "https://www.google.co.jp/maps/search/いちご+岡山県"
 shop_info_url = "https://www.google.com/maps/place/中山いちご園/@34.746871,133.8833268,17z/data=!3m1!4b1!4m6!3m5!1s0x3554046139547919:0x9319ebd5f66b8a4c!8m2!3d34.746871!4d133.8833268!16s%2Fg%2F1vzg01y_?authuser=0&hl=ja"  # noqa
@@ -58,5 +61,5 @@ def test_create_shop_url_list():
 
 
 if __name__ == "__main__":
-    db = DB()
-    db.update(**web.create_shop_info_dic(shop_info_url2))
+    os.environ["SEARCH_WORD"] = "みのる産業"
+    main.main()
