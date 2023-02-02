@@ -8,8 +8,6 @@ from selenium.common.exceptions import JavascriptException
 from selenium.webdriver.chrome import service as fs
 from webdriver_manager.chrome import ChromeDriverManager
 
-# 店舗一覧の先頭URL
-shop_list_first_url = "https://www.google.co.jp/maps/search/"
 # Google Chromeのドライバを用意
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -88,15 +86,11 @@ def create_shop_url_list(url: str, /) -> list[str]:
     DRIVER.get(url)
     time.sleep(2)
     # 検索結果が店舗一覧かどうかチェック
-    count = len(shop_list_first_url)
-    if DRIVER.current_url[:count] != shop_list_first_url:
-        raise InvalidURLError
-    # スクロールクラスチェック
     try:
         _can_scroll()
     except (JavascriptException):
         logging.critical("スクロールクラスが変更された可能性があります！")
-        return _get_shop_url_list()
+        raise InvalidURLError
     # 10件以上を反映させるためにスクロールして更新する
     while True:
         if _can_scroll():
