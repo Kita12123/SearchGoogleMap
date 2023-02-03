@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 from pathlib import Path
 
@@ -39,6 +40,7 @@ class DB:
             [*values.values(), url]
             for url, values in self.data_dic.items()
         ]
+        logging.info(f"データ件数: {len(values)}件")
         data_csv = columns + values
         while True:
             try:

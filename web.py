@@ -89,7 +89,7 @@ def create_shop_url_list(url: str, /) -> list[str]:
     try:
         _can_scroll()
     except (JavascriptException):
-        logging.critical("スクロールクラスが変更された可能性があります！")
+        logging.error("店舗リストを取得できませんした。")
         raise InvalidURLError
     # 10件以上を反映させるためにスクロールして更新する
     while True:

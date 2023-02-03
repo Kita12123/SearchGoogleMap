@@ -51,18 +51,19 @@ def main():
     for i, place in enumerate(PLACES):
         logging.info(f"場所: {place} ({i} / {max_count}) ...")
         url = _create_url(place)
-        while True:
-            try:
-                shop_url_list = create_shop_url_list(url)
-                break
-            except (InvalidURLError):
-                # いきなり店舗が出たとき
-                # ミニトマト+宮城県
-                if place[-1] in "都府県":
-                    place = place[:-1]
+        try:
+            shop_url_list = create_shop_url_list(url)
+        except (InvalidURLError):
+            # いきなり店舗が出たとき
+            # ミニトマト+宮城県
+            if place[-1] in "都府県":
+                place = place[:-1]
+                try:
+                    shop_url_list = create_shop_url_list(url)
+                except (InvalidURLError):
                     continue
-                else:
-                    break
+            else:
+                continue
         for url in tqdm(shop_url_list):
             shop_info_dic = create_shop_info_dic(url)
             db.update(**shop_info_dic)
