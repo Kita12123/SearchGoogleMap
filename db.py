@@ -2,12 +2,16 @@ import csv
 import logging
 import os
 from pathlib import Path
+import sys
 
-FILE_SAVE = Path(__file__).parent / f"search-({SEARCH_WORD}).csv"
 
 class DB:
 
     data_dic: dict[str, dict[str, str]] = {}
+
+    def __init__(self):
+        search_word = os.environ["SEARCH_WORD"]
+        self.file = Path(sys.argv[0]).parent / "temp" / f"search-({search_word}).csv"
 
     def update(self, **kwargs):
         # 重要: web.py > create_shop_info_dic() と同じにする
@@ -25,7 +29,6 @@ class DB:
         self.data_dic[url] = values
 
     def to_csv(self):
-        SEARCH_WORD = os.environ["SEARCH_WORD"]
         columns = [[
             "店舗名",
             "業界",

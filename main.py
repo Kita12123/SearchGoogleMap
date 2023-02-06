@@ -10,15 +10,13 @@ import sys
 
 from tqdm import tqdm
 
-from db import DB, FILE_SAVE
+from db import DB
 from web import InvalidURLError, create_shop_info_dic, create_shop_url_list
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(levelname)s] %(asctime)s - %(message)s"
 )
-# データベース定義
-db = DB()
 PLACES = [
     "北海道",
     "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
@@ -46,7 +44,9 @@ def _create_url(place, /) -> str:
 
 
 def main():
-    logging.info(f"データファイル -> {FILE_SAVE}")
+    # データベース定義
+    db = DB()
+    logging.info(f"データファイル -> {db.file}")
     max_count = len(PLACES)
     logging.info("スクレイピング実行中...")
     for i, place in enumerate(PLACES):
