@@ -59,6 +59,6 @@ if __name__ == "__main__":
     os.environ["SCROLL_CLASS"] = "m6QErb DxyBCb kA9KIf dS8AEf ecceSd"
     os.environ["SHOP_LINK_CLASS"] = "hfpxzc"
     main.PLACES.clear()
-    main.PLACES.append("徳島県")
+    main.PLACES.append("香川県")
 
     main.main()

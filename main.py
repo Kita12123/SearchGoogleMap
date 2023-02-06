@@ -11,7 +11,8 @@ import sys
 from tqdm import tqdm
 
 from db import DB
-from web import InvalidURLError, create_shop_info_dic, create_shop_url_list
+from web import (DRIVER, InvalidURLError, create_shop_info_dic,
+                 create_shop_url_list)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,6 +69,7 @@ def main():
         for url in tqdm(shop_url_list):
             shop_info_dic = create_shop_info_dic(url)
             db.update(**shop_info_dic)
+    DRIVER.quit()
     logging.info("csvファイルへ出力中...")
     db.to_csv()
     logging.info("完了")
