@@ -1,8 +1,8 @@
 import csv
 import logging
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 
 class DB:
@@ -48,7 +48,7 @@ class DB:
         while True:
             try:
                 with open(
-                    FILE_SAVE,
+                    self.file,
                     "w",
                     newline="",
                     encoding="cp932",
@@ -57,4 +57,4 @@ class DB:
                     csv.writer(f).writerows(data_csv)
                 break
             except (PermissionError):
-                input(f"ERR! ファイル:{file}を閉じてください。<Enter>")
+                input(f"ERR! ファイル:{self.file}を閉じてください。<Enter>")
