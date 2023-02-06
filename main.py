@@ -10,7 +10,7 @@ import sys
 
 from tqdm import tqdm
 
-from db import DB
+from db import DB, FILE_SAVE
 from web import InvalidURLError, create_shop_info_dic, create_shop_url_list
 
 logging.basicConfig(
@@ -46,6 +46,7 @@ def _create_url(place, /) -> str:
 
 
 def main():
+    logging.info(f"データファイル -> {FILE_SAVE}")
     max_count = len(PLACES)
     logging.info("スクレイピング実行中...")
     for i, place in enumerate(PLACES):

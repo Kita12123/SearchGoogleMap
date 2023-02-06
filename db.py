@@ -3,6 +3,7 @@ import logging
 import os
 from pathlib import Path
 
+FILE_SAVE = Path(__file__).parent / f"search-({SEARCH_WORD}).csv"
 
 class DB:
 
@@ -25,7 +26,6 @@ class DB:
 
     def to_csv(self):
         SEARCH_WORD = os.environ["SEARCH_WORD"]
-        file = Path(__file__).parent / f"search-({SEARCH_WORD}).csv"
         columns = [[
             "店舗名",
             "業界",
@@ -45,7 +45,7 @@ class DB:
         while True:
             try:
                 with open(
-                    file,
+                    FILE_SAVE,
                     "w",
                     newline="",
                     encoding="cp932",
