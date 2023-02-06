@@ -11,7 +11,9 @@ class DB:
 
     def __init__(self):
         search_word = os.environ["SEARCH_WORD"]
-        self.file = Path(sys.argv[0]).parent / "temp" / f"search-({search_word}).csv"
+        self.file = Path(
+            sys.argv[0]
+            ).parent / "temp" / f"search-({search_word}).csv"
 
     def update(self, **kwargs):
         # 重要: web.py > create_shop_info_dic() と同じにする
