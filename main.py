@@ -50,29 +50,33 @@ def main():
     logging.info(f"データファイル -> {db.file}")
     max_count = len(PLACES)
     logging.info("スクレイピング実行中...")
-    for i, place in enumerate(PLACES):
-        logging.info(f"場所: {place} ({i} / {max_count}) ...")
-        url = _create_url(place)
-        try:
-            shop_url_list = create_shop_url_list(url)
-        except (InvalidURLError):
-            # いきなり店舗が出たとき
-            # ミニトマト+宮城県
-            if place[-1] in "都府県":
-                place = place[:-1]
-                try:
-                    shop_url_list = create_shop_url_list(url)
-                except (InvalidURLError):
+    try:
+        for i, place in enumerate(PLACES):
+            logging.info(f"場所: {place} ({i} / {max_count}) ...")
+            url = _create_url(place)
+            try:
+                shop_url_list = create_shop_url_list(url)
+            except (InvalidURLError):
+                # いきなり店舗が出たとき
+                # ミニトマト+宮城県
+                if place[-1] in "都府県":
+                    place = place[:-1]
+                    try:
+                        shop_url_list = create_shop_url_list(url)
+                    except (InvalidURLError):
+                        continue
+                else:
                     continue
-            else:
-                continue
-        for url in tqdm(shop_url_list):
-            shop_info_dic = create_shop_info_dic(url)
-            db.update(**shop_info_dic)
-    DRIVER.quit()
-    logging.info("csvファイルへ出力中...")
-    db.to_csv()
-    logging.info("完了")
+            for url in tqdm(shop_url_list):
+                shop_info_dic = create_shop_info_dic(url)
+                db.update(**shop_info_dic)
+        DRIVER.quit()
+        logging.info("csvファイルへ出力中...")
+        db.to_csv()
+        logging.info("完了")
+    except:
+        logging.critical("エラーが発生しました。途中経過を保存します。")
+        db.to_csv()
 
 
 if __name__ == "__main__":
