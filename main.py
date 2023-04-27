@@ -69,6 +69,10 @@ def main():
                     continue
             for url in tqdm(shop_url_list):
                 shop_info_dic = create_shop_info_dic(url)
+                # 鈴木さん依頼(2023/02/16)
+                # ホームページがないものはいらない
+                # if shop_info_dic["hp"]:
+                #     db.update(**shop_info_dic)
                 db.update(**shop_info_dic)
         DRIVER.quit()
         logging.info("csvファイルへ出力中...")
